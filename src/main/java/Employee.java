@@ -1,12 +1,27 @@
+import javax.persistence.*;
+
+@Entity
+@Table(name = "employee")
 public class Employee {
-    private int id, age;
-    private String first_name, last_name, gender;
-    private City city;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private int id;
+    @Column(name = "age")
+    private int age;
+    @Column(name = "first_name")
+    private String first_name;
+    @Column(name = "last_name")
+    private String last_name;
+    @Column(name = "gender")
+    private String gender;
+    @Column(name = "city_id")
+    private int city;
 
     public Employee() {
     }
 
-    public Employee(int age, String first_name, String last_name, String gender, City city) {
+    public Employee(int age, String first_name, String last_name, String gender, int city) {
         this.age = age;
         this.first_name = first_name;
         this.last_name = last_name;
@@ -14,7 +29,7 @@ public class Employee {
         this.city = city;
     }
 
-    public Employee(int id, int age, String first_name, String last_name, String gender, City city) {
+    public Employee(int id, int age, String first_name, String last_name, String gender, int city) {
         this.id = id;
         this.age = age;
         this.first_name = first_name;
@@ -44,9 +59,10 @@ public class Employee {
         return gender;
     }
 
-    public City getCity() {
+    public int getCity() {
         return city;
     }
+
     public void setId(int id) {
         this.id = id;
     }
@@ -67,7 +83,7 @@ public class Employee {
         this.gender = gender;
     }
 
-    public void setCity(City city) {
+    public void setCity(int city) {
         this.city = city;
     }
     //endregion Getter - Setter

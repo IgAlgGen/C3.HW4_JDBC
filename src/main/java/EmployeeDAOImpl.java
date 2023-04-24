@@ -1,25 +1,25 @@
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 
 public class EmployeeDAOImpl implements EmployeeDAO {
-    final String user = "postgres";
-    final String password = "12345";
-    final String url = "jdbc:postgresql://localhost:5432/skypro";
 
     @Override
     public void addEmployee(Employee employee) {
-        try (final Connection connection = DriverManager.getConnection(url, user, password);
-             PreparedStatement statement = connection.prepareStatement("INSERT INTO employee (first_name, last_name, gender, age, city_id) " +
-                     "VALUES ((?), (?), (?), (?), (?))")) {
-            statement.setString(1, employee.getFirst_name());
-            statement.setString(2, employee.getLast_name());
-            statement.setString(3, employee.getGender());
-            statement.setInt(4, employee.getAge());
-            statement.setInt(5, employee.getCity().getCity_id());
-            statement.executeUpdate();
-        } catch (SQLException e) {
+        try {
+            EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("myPersistenceUnit");
+            EntityManager entityManager = entityManagerFactory.createEntityManager();
+            entityManager.getTransaction().begin();
+            entityManager.persist(employee);
+            entityManager.getTransaction().commit();
+            entityManager.close();
+            entityManagerFactory.close();
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -27,19 +27,16 @@ public class EmployeeDAOImpl implements EmployeeDAO {
     @Override
     public Employee getById(int id) {
         Employee employee = new Employee();
-        try (final Connection connection = DriverManager.getConnection(url, user, password);
-             PreparedStatement statement = connection.prepareStatement("SELECT * FROM employee INNER JOIN city ON employee.city_id = city.city_id WHERE id = (?)")) {
-            statement.setInt(1, id);
-            ResultSet resultSet = statement.executeQuery();
-            while (resultSet.next()) {
-                employee.setId(resultSet.getInt(1));
-                employee.setFirst_name(resultSet.getString("first_name"));
-                employee.setLast_name(resultSet.getString("last_name"));
-                employee.setGender(resultSet.getString("gender"));
-                employee.setAge(resultSet.getInt("age"));
-                employee.setCity(new City(resultSet.getInt("city_id"), resultSet.getString("city_name")));
-            }
-        } catch (SQLException e) {
+        try {
+            EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("myPersistenceUnit");
+            EntityManager entityManager = entityManagerFactory.createEntityManager();
+            entityManager.getTransaction().begin();
+            employee = entityManager.find(Employee.class, 2);
+            entityManager.getTransaction().commit();
+            entityManager.close();
+            entityManagerFactory.close();
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return employee;
@@ -47,42 +44,41 @@ public class EmployeeDAOImpl implements EmployeeDAO {
 
     @Override
     public List<Employee> getAllEmployee() {
-        List<Employee> employeeList = new ArrayList<>();
-        try (final Connection connection = DriverManager.getConnection(url, user, password);
-             PreparedStatement statement = connection.prepareStatement("(SELECT * FROM employee \n" +
-                     "LEFT OUTER JOIN city ON employee.city_id = city.city_id)\n" +
-                     "UNION\n" +
-                     "(SELECT * FROM employee\n" +
-                     "RIGHT OUTER JOIN city ON employee.city_id = city.city_id)")) {
-            ResultSet resultSet = statement.executeQuery();
-            while (resultSet.next()) {
-                int id = Integer.parseInt(resultSet.getString("id"));
-                String firstName = resultSet.getString("first_name");
-                String lastName = resultSet.getString("last_name");
-                String gender = resultSet.getString("gender");
-                int age = Integer.parseInt(resultSet.getString("age"));
-                City city = new City(resultSet.getInt("city_id"), resultSet.getString("city_name"));
-                employeeList.add(new Employee(id, age, firstName, lastName, gender, city));
-            }
-        } catch (SQLException e) {
+        List<Employee> employeeList = null;
+        try {
+            EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("myPersistenceUnit");
+            EntityManager entityManager = entityManagerFactory.createEntityManager();
+            entityManager.getTransaction().begin();
+            employeeList = entityManager.createQuery("select m from Employee m").getResultList();
+            entityManager.getTransaction().commit();
+            entityManager.close();
+            entityManagerFactory.close();
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return employeeList;
-
     }
+
 
     @Override
     public void updateEmployee(int id, Employee employee) {
-        try (final Connection connection = DriverManager.getConnection(url, user, password);
-             PreparedStatement statement = connection.prepareStatement("UPDATE employee SET first_name = (?), last_name = (?), gender = (?), age = (?), city_id = (?) WHERE id = (?)")) {
-            statement.setString(1, employee.getFirst_name());
-            statement.setString(2, employee.getLast_name());
-            statement.setString(3, employee.getGender());
-            statement.setInt(4, employee.getAge());
-            statement.setInt(5, employee.getCity().getCity_id());
-            statement.setInt(6, id);
-            statement.executeUpdate();
-        } catch (SQLException e) {
+        try {
+            EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("myPersistenceUnit");
+            EntityManager entityManager = entityManagerFactory.createEntityManager();
+            entityManager.getTransaction().begin();
+            Employee testEmp = entityManager.find(Employee.class, id);
+            testEmp.setAge(employee.getAge());
+            testEmp.setFirst_name(employee.getFirst_name());
+            testEmp.setLast_name(employee.getLast_name());
+            testEmp.setGender(employee.getGender());
+            entityManager.merge(testEmp);
+            entityManager.clear();
+            entityManager.getTransaction().commit();
+            entityManager.close();
+            entityManagerFactory.close();
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -90,11 +86,16 @@ public class EmployeeDAOImpl implements EmployeeDAO {
 
     @Override
     public void deleteEmployee(int id) {
-        try (final Connection connection = DriverManager.getConnection(url, user, password);
-             PreparedStatement statement = connection.prepareStatement("DELETE FROM employee WHERE id = (?)")) {
-            statement.setInt(1, id);
-            statement.executeUpdate();
-        } catch (SQLException e) {
+        try {
+            EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("myPersistenceUnit");
+            EntityManager entityManager = entityManagerFactory.createEntityManager();
+            entityManager.getTransaction().begin();
+            Employee tempEmployee = EnManFacUt.getEntityManager().find(Employee.class, id);
+            entityManager.remove(tempEmployee);
+            entityManager.getTransaction().commit();
+            entityManager.close();
+            entityManagerFactory.close();
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
