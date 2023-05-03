@@ -4,21 +4,20 @@ import java.util.List;
 
 public class Application {
     public static void main(String[] args) {
-      EmployeeDAOImpl em = new EmployeeDAOImpl();
-      Employee empl = new Employee(40, "Alex", "Yang", "male", 3);
-//      em.addEmployee(empl);
+        EmployeeDAOImpl em = new EmployeeDAOImpl();
+        Employee empl = new Employee(40, "Alex", "Yang", "male", 3);
 
-//      Employee newone = em.getById(3);
-//        System.out.println(newone);
+        em.addEmployee(empl);
 
-        List<Employee> emplList = em.getAllEmployee();
-        for (Employee employee: emplList) {
+        System.out.println((em.getById(6)));
+
+        for (Employee employee : em.getAllEmployee()) {
             System.out.println(employee);
         }
 
-        em.updateEmployee(12, empl);
+        em.updateEmployee(15, empl);
 
-        em.deleteEmployee(12);
+        em.deleteEmployee(16);
 
     }
 }

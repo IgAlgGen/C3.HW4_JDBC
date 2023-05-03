@@ -1,3 +1,6 @@
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
@@ -10,93 +13,45 @@ public class EmployeeDAOImpl implements EmployeeDAO {
 
     @Override
     public void addEmployee(Employee employee) {
-        try {
-            EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("myPersistenceUnit");
-            EntityManager entityManager = entityManagerFactory.createEntityManager();
-            entityManager.getTransaction().begin();
-            entityManager.persist(employee);
-            entityManager.getTransaction().commit();
-            entityManager.close();
-            entityManagerFactory.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        try (Session session = HibernateSessionFactoryUtil.getSessionFactory().openSession()) {
+            Transaction transaction = session.beginTransaction();
+            session.save(employee);
+            transaction.commit();
         }
     }
 
     @Override
     public Employee getById(int id) {
-        Employee employee = new Employee();
-        try {
-            EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("myPersistenceUnit");
-            EntityManager entityManager = entityManagerFactory.createEntityManager();
-            entityManager.getTransaction().begin();
-            employee = entityManager.find(Employee.class, 2);
-            entityManager.getTransaction().commit();
-            entityManager.close();
-            entityManagerFactory.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        try (Session session = HibernateSessionFactoryUtil.getSessionFactory().openSession()){
+           return session.get(Employee.class, id);
         }
-        return employee;
     }
 
     @Override
     public List<Employee> getAllEmployee() {
-        List<Employee> employeeList = null;
-        try {
-            EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("myPersistenceUnit");
-            EntityManager entityManager = entityManagerFactory.createEntityManager();
-            entityManager.getTransaction().begin();
-            employeeList = entityManager.createQuery("select m from Employee m").getResultList();
-            entityManager.getTransaction().commit();
-            entityManager.close();
-            entityManagerFactory.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        try (Session session = HibernateSessionFactoryUtil.getSessionFactory().openSession()){
+            return session.createQuery("FROM Employee").list();
         }
-        return employeeList;
     }
 
 
     @Override
     public void updateEmployee(int id, Employee employee) {
-        try {
-            EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("myPersistenceUnit");
-            EntityManager entityManager = entityManagerFactory.createEntityManager();
-            entityManager.getTransaction().begin();
-            Employee testEmp = entityManager.find(Employee.class, id);
-            testEmp.setAge(employee.getAge());
-            testEmp.setFirst_name(employee.getFirst_name());
-            testEmp.setLast_name(employee.getLast_name());
-            testEmp.setGender(employee.getGender());
-            entityManager.merge(testEmp);
-            entityManager.clear();
-            entityManager.getTransaction().commit();
-            entityManager.close();
-            entityManagerFactory.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
+        try (Session session = HibernateSessionFactoryUtil.getSessionFactory().openSession()){
+            Transaction transaction = session.beginTransaction();
+            employee.setId(id);
+            session.update(employee);
+            transaction.commit();
         }
 
     }
 
     @Override
     public void deleteEmployee(int id) {
-        try {
-            EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("myPersistenceUnit");
-            EntityManager entityManager = entityManagerFactory.createEntityManager();
-            entityManager.getTransaction().begin();
-            Employee tempEmployee = EnManFacUt.getEntityManager().find(Employee.class, id);
-            entityManager.remove(tempEmployee);
-            entityManager.getTransaction().commit();
-            entityManager.close();
-            entityManagerFactory.close();
-        } catch (Exception e) {
-            e.printStackTrace();
+        try (Session session = HibernateSessionFactoryUtil.getSessionFactory().openSession()){
+            Transaction transaction = session.beginTransaction();
+            session.delete(session.find(Employee.class,id));
+            transaction.commit();
         }
     }
 
