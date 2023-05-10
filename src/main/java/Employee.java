@@ -15,13 +15,14 @@ public class Employee {
     private String last_name;
     @Column(name = "gender")
     private String gender;
-    @Column(name = "city_id")
-    private int city;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "city_id")
+    private City city;
 
     public Employee() {
     }
 
-    public Employee(int age, String first_name, String last_name, String gender, int city) {
+    public Employee(int age, String first_name, String last_name, String gender, City city) {
         this.age = age;
         this.first_name = first_name;
         this.last_name = last_name;
@@ -29,7 +30,7 @@ public class Employee {
         this.city = city;
     }
 
-    public Employee(int id, int age, String first_name, String last_name, String gender, int city) {
+    public Employee(int id, int age, String first_name, String last_name, String gender, City city) {
         this.id = id;
         this.age = age;
         this.first_name = first_name;
@@ -59,7 +60,7 @@ public class Employee {
         return gender;
     }
 
-    public int getCity() {
+    public City getCity() {
         return city;
     }
 
@@ -83,7 +84,7 @@ public class Employee {
         this.gender = gender;
     }
 
-    public void setCity(int city) {
+    public void setCity(City city) {
         this.city = city;
     }
     //endregion Getter - Setter
